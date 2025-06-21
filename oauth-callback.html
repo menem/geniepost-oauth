@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeniePost - LinkedIn Authentication</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+        .success {
+            color: #51cf66;
+            background: rgba(81, 207, 102, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🧞‍♂️ GeniePost</div>
+        <div id="status">
+            <div class="spinner"></div>
+            <p>Processing LinkedIn authentication...</p>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(message, type = 'loading') {
+            const statusDiv = document.getElementById('status');
+            if (type === 'loading') {
+                statusDiv.innerHTML = `
+                    <div class="spinner"></div>
+                    <p>${message}</p>
+                `;
+            } else if (type === 'success') {
+                statusDiv.innerHTML = `
+                    <div class="success">
+                        <p>✅ ${message}</p>
+                        <p>Redirecting to GeniePost app...</p>
+                    </div>
+                `;
+            } else if (type === 'error') {
+                statusDiv.innerHTML = `
+                    <div class="error">
+                        <p>❌ ${message}</p>
+                        <p>Please try again or contact support.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Extract parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        const state = urlParams.get('state');
+
+        if (error) {
+            updateStatus(`Authentication failed: ${error}`, 'error');
+        } else if (code) {
+            updateStatus('Authentication successful! Opening GeniePost...', 'success');
+            
+            // Try to open the app with the authorization code
+            const appUrl = `geniepost://linkedin/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state || '')}`;
+            
+            // Attempt to open the app
+            window.location.href = appUrl;
+            
+            // Fallback: Show instructions if app doesn't open
+            setTimeout(() => {
+                updateStatus('Please open the GeniePost app manually to complete authentication.', 'success');
+            }, 3000);
+            
+        } else {
+            updateStatus('No authorization code received. Please try again.', 'error');
+        }
+    </script>
+</body>
+</html> 
